@@ -1,0 +1,13 @@
+*.egg-info*
+*.pyc
+*.pyo
+*.swp
+*~
+.env
+.gitconfig
+.idea
+__pycache__
+build
+dist
+env/
+MANIFEST
