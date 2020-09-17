@@ -216,6 +216,7 @@ class Client:
             'state': state,
             'response_type': 'code',
             'duo_uname': username,
+            'use_duo_code_attribute': 'True',
         }
 
         request_jwt = jwt.encode(jwt_args,
@@ -231,14 +232,14 @@ class Client:
         authorization_uri = "{}?{}".format(authorize_endpoint, query_string)
         return authorization_uri
 
-    def exchange_authorization_code_for_2fa_result(self, code, username, nonce=None):
+    def exchange_authorization_code_for_2fa_result(self, duoCode, username, nonce=None):
         """
-        Exchange the code for a token with Duo to determine
+        Exchange the duo_code for a token with Duo to determine
         if the auth was successful.
 
         Argument:
 
-        code            -- Authentication session transaction id
+        duoCode         -- Authentication session transaction id
                            returned by Duo
         username        -- Name of the user authenticating with Duo
         nonce           -- Random 36B string used to associate
@@ -250,10 +251,10 @@ class Client:
 
         Raises:
 
-        DuoException on error for invalid codes, invalid credentials,
+        DuoException on error for invalid duo_codes, invalid credentials,
         or problems connecting to Duo
         """
-        if not code:
+        if not duoCode:
             raise DuoException(ERR_CODE)
 
         token_endpoint = OAUTH_V1_TOKEN_ENDPOINT.format(self._api_host)
@@ -261,7 +262,7 @@ class Client:
 
         all_args = {
             'grant_type': 'authorization_code',
-            'code': code,
+            'code': duoCode,
             'redirect_uri': self._redirect_uri,
             'client_id': self._client_id,
             'client_assertion_type': CLIENT_ASSERT_TYPE,

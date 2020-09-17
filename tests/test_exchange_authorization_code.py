@@ -1,6 +1,6 @@
 from jwt.exceptions import InvalidSignatureError
 from mock import MagicMock, patch
-from duo_python_oidc import client
+from duo_universal import client
 import json
 import unittest
 import requests
@@ -13,8 +13,8 @@ CLIENT_SECRET = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 WRONG_CLIENT_SECRET = "wrongclientidwrongclientidwrongclientidw"
 HOST = "api-XXXXXXX.test.duosecurity.com"
 REDIRECT_URI = "https://www.example.com"
-CODE = "deadbeefdeadbeefdeadbeefdeadbeef"
-WRONG_CODE = "deadbeefdeadbeefdeadbeefdeadbeee"
+DUO_CODE = "deadbeefdeadbeefdeadbeefdeadbeef"
+WRONG_DUO_CODE = "deadbeefdeadbeefdeadbeefdeadbeee"
 USERNAME = "username"
 WRONG_USERNAME = "wrong_username"
 NONCE = "abcdefghijklmnopqrstuvwxyzabcdef"
@@ -26,7 +26,7 @@ ERROR_NETWORK_CONNECTION_FAILED = "Failed to establish a new connection"
 
 REQUESTS_POST_ERROR = 400
 REQUESTS_POST_SUCCESS = 200
-ERROR_WRONG_CODE = {'error': 'invalid_grant',
+ERROR_WRONG_DUO_CODE = {'error': 'invalid_grant',
                     'error_description': 'The provided authorization grant or '
                                          'refresh token is invalid, expired, '
                                          'revoked, does not match '
@@ -55,14 +55,14 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
                       'iss': 'https://{}/oauth/v1/token'.format(HOST),
                       'preferred_username': USERNAME}
 
-    def test_no_code(self):
+    def test_no_duo_code(self):
         """
         Test that exchange_authorization_code_for_2fa_result
-        throws a DuoException if there is no code
+        throws a DuoException if there is no duo_code
         """
         with self.assertRaises(client.DuoException) as e:
             self.client.exchange_authorization_code_for_2fa_result(NONE, USERNAME)
-            self.assertEqual(e, client.ERR_CODE)
+            self.assertEqual(e, client.ERR_DUO_CODE)
 
     @patch('requests.post', MagicMock(
                             side_effect=requests.Timeout(ERROR_TIMEOUT)))
@@ -72,7 +72,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         throws DuoException if the request times out
         """
         with self.assertRaises(client.DuoException) as e:
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e, ERROR_TIMEOUT)
 
     @patch('requests.post', MagicMock(
@@ -84,7 +84,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         throws DuoException if the network connection failed
         """
         with self.assertRaises(client.DuoException) as e:
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e, ERROR_NETWORK_CONNECTION_FAILED)
 
     @patch('requests.post')
@@ -99,22 +99,22 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         mock_json_loads.return_value = ERROR_WRONG_CLIENT_ID
 
         with self.assertRaises(client.DuoException) as e:
-            self.client_wrong_client_id.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client_wrong_client_id.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e['error'], 'invalid_grant')
 
     @patch('requests.post')
     @patch('json.loads')
-    def test_exchange_authorization_code_wrong_code(self,
-                                                    mock_json_loads,
-                                                    mock_post):
+    def test_exchange_authorization_code_wrong_duo_code(self,
+                                                        mock_json_loads,
+                                                        mock_post):
         """
-        Test that a wrong code exchanged with Duo throws a DuoException
+        Test that a wrong duo_code exchanged with Duo throws a DuoException
         """
         mock_post.return_value.status_code = REQUESTS_POST_ERROR
-        mock_json_loads.return_value = ERROR_WRONG_CODE
+        mock_json_loads.return_value = ERROR_WRONG_DUO_CODE
 
         with self.assertRaises(client.DuoException) as e:
-            self.client.exchange_authorization_code_for_2fa_result(WRONG_CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(WRONG_DUO_CODE, USERNAME)
             self.assertEqual(e['error'], 'invalid_client')
 
     @patch('requests.post')
@@ -124,19 +124,19 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         requests_mock.side_effect = requests.exceptions.SSLError(WRONG_CERT_ERROR)
         with self.assertRaises(client.DuoException) as e:
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e, WRONG_CERT_ERROR)
 
     @patch('requests.post')
     @patch('jwt.decode')
     def test_exchange_authorization_code_success(self, mock_jwt, mock_post):
         """
-        Test that a successful authorization code exchange
+        Test that a successful authorization duo_code exchange
         returns a successful jwt
         """
         mock_post.return_value.status_code = REQUESTS_POST_SUCCESS
         mock_jwt.return_value = self.jwt_decode
-        output = self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+        output = self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
         self.assertEqual(output, self.jwt_decode)
 
     @patch('requests.post')
@@ -145,7 +145,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         Test that a good nonce succeeds
         """
         mock_post.return_value = self.generate_post_return_value('nonce', NONCE)
-        output = self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME, NONCE)
+        output = self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME, NONCE)
         self.assertEqual(output, self.jwt_decode)
 
     @patch('requests.post')
@@ -157,7 +157,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         mock_response = MockResponse(status_code=200, content={"id_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmNkZWYiLCJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE1MTYyMzkwMjJ9.kmo4YemI0g8l9fGV1z5Obec3oEQdeena21lFrDrID9O2NmPC-6Oh2InZ0Gd34EhqevZ5dqRf-nfYNAL6nDS33A"})
         mock_post.return_value = mock_response
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_invalid_signing_key_failure(self, mock_post):
@@ -168,7 +168,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         id_token = {"id_token": encoded_jwt}
         mock_post.return_value = MockResponse(id_token)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e.message, "Signature verification failed")
 
     @patch('requests.post')
@@ -178,7 +178,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.generate_post_return_value('preferred_username', WRONG_USERNAME)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_wrong_aud(self, mock_post):
@@ -187,7 +187,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.generate_post_return_value('aud', WRONG_CLIENT_ID)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_no_aud(self, mock_post):
@@ -196,7 +196,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.pop_post_return_value('aud')
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_wrong_iss(self, mock_post):
@@ -205,7 +205,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.generate_post_return_value('iss', HOST)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_no_preferred_username(self, mock_post):
@@ -214,7 +214,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.pop_post_return_value('preferred_username')
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_no_iat(self, mock_post):
@@ -223,7 +223,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.pop_post_return_value('iat')
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_no_exp(self, mock_post):
@@ -232,7 +232,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.pop_post_return_value('exp')
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_past_exp(self, mock_post):
@@ -241,7 +241,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.generate_post_return_value('exp', 1)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
 
     @patch('requests.post')
     def test_exchange_authorization_wrong_nonce(self, mock_post):
@@ -250,7 +250,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         """
         mock_post.return_value = self.generate_post_return_value('nonce', WRONG_NONCE)
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME, NONCE)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME, NONCE)
 
     @patch('requests.post')
     @patch('jwt.decode')
@@ -261,7 +261,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         mock_post.return_value.status_code = REQUESTS_POST_SUCCESS
         mock_jwt.return_value = self.jwt_decode
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, USERNAME, NONCE)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME, NONCE)
 
     @patch('requests.post')
     @patch('jwt.decode')
@@ -272,7 +272,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         mock_post.return_value.status_code = REQUESTS_POST_SUCCESS
         mock_jwt.return_value = self.jwt_decode
         with self.assertRaises(client.DuoException):
-            self.client.exchange_authorization_code_for_2fa_result(CODE, None)
+            self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, None)
 
     def generate_post_return_value(self, key, value):
         self.jwt_decode[key] = value

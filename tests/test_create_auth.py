@@ -1,5 +1,5 @@
 from six.moves.urllib.parse import urlencode
-from duo_python_oidc import client
+from duo_universal import client
 from mock import MagicMock, patch
 import jwt
 import unittest
@@ -23,6 +23,7 @@ EXPECTED_JWT_ARGS = {
     'state': STATE,
     'response_type': 'code',
     'duo_uname': USERNAME,
+    'use_duo_code_attribute': 'True',
 }
 
 EXPECTED_ALL_ARGS = {

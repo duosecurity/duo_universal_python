@@ -1,5 +1,5 @@
 from mock import MagicMock, patch
-from duo_python_oidc import client
+from duo_universal import client
 import unittest
 
 CLIENT_ID = "DIXXXXXXXXXXXXXXXXXX"

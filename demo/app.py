@@ -64,7 +64,7 @@ def duo_callback():
     state = request.args.get('state')
 
     # Get authorization token to trade for 2FA
-    code = request.args.get('code')
+    code = request.args.get('duo_code')
 
     if 'state' in session and 'username' in session:
         saved_state = session['state']
