@@ -28,7 +28,7 @@ virtualenv env
 source env/bin/activate
 ```
 
-Build and install the SDK form source:
+Build and install the SDK from source:
 ```
 pip install -r requirements.txt
 pip install .
