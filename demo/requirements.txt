@@ -1,1 +1,2 @@
 Flask==1.1.2
+./.. # build duo_universal_python from source directory

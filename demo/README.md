@@ -3,11 +3,24 @@
 A simple Python web application that serves a logon page integrated with Duo 2FA.
 
 ## Setup
-The following steps assume the SDK is already installed and that you're working in your preferred environment. See the top-level README for installation and environment setup instructions.
+Change to the "demo" directory
+```
+cd demo
+```
+
+Set up a virtual environment
+```
+# Python 3
+python -m venv env
+source env/bin/activate
+
+# Python 2
+virtualenv env
+source env/bin/activate
+```
 
 Install the demo requirements:
 ```
-cd demo
 pip install -r requirements.txt
 ```
 
