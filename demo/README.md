@@ -27,9 +27,10 @@ pip install -r requirements.txt
 Then, create a `Web SDK` application in the Duo Admin Panel. See https://duo.com/docs/protecting-applications for more details.
 ## Using the App
 
-1. Using the Client ID, Client Secret, and API Hostname for your `Web SDK` application, start the app.
+1. Copy the Client ID, Client Secret, and API Hostname values for your `Web SDK` application into the `duo.conf` file.
+1. Start the app.
     ```
-    DUO_CLIENT_ID=<client_id> DUO_CLIENT_SECRET=<client_secret> DUO_API_HOST=<api_host> python app.py
+    python app.py
     ```
 1. Navigate to http://localhost:8080. 
 1. Log in with the user you would like to enroll in Duo or with an already enrolled user (any password will work).

@@ -1,3 +1,4 @@
+import configparser
 import json
 import os
 import traceback
@@ -6,14 +7,21 @@ from flask import Flask, request, redirect, session, render_template
 
 from duo_universal.client import Client, DuoException
 
-duo_client = Client(
-        client_id=os.environ.get("DUO_CLIENT_ID"),
-        client_secret=os.environ.get("DUO_CLIENT_SECRET"),
-        host=os.environ.get("DUO_API_HOST"),
-        redirect_uri="http://localhost:8080/duo-callback"
-    )
+config = configparser.ConfigParser()
+config.read("duo.conf")
 
-duo_failmode = os.environ.get("DUO_FAILMODE", "open")
+try:
+    duo_client = Client(
+        client_id=config['duo']['client_id'],
+        client_secret=config['duo']['client_secret'],
+        host=config['duo']['api_hostname'],
+        redirect_uri='http://localhost:8080/duo-callback'
+    )
+except DuoException as e:
+    print("*** Duo config error. Verify the values in duo.conf are correct ***")
+    raise e
+
+duo_failmode = config['duo']['failmode']
 
 app = Flask(__name__)
 
