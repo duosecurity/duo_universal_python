@@ -50,6 +50,12 @@ def login_post():
                                    message="2FA Unavailable. Confirm Duo client/secret/host values are correct")
 
     username = request.form.get('username')
+    password = request.form.get('password')
+
+    # Check user's first factor
+    if password == None or password == "":
+        return render_template("login.html",
+                               message="Missing password")
 
     # Generate random string to act as a state for the exchange
     state = duo_client.generate_state()
