@@ -10,14 +10,18 @@ HOST = "api-XXXXXXX.test.duosecurity.com"
 REDIRECT_URI = "https://www.example.com"
 
 WRONG_CERT_ERROR = 'certificate verify failed'
-SUCCESS_CHECK = {'response': {'timestamp': 1573068322}, 'stat': 'OK'}
+SUCCESS_CHECK = {
+    'response': {'timestamp': 1573068322},
+    'stat': 'OK'
+}
 ERROR_TIMEOUT = "Connection to api-xxxxxxx.test.duosecurity.com timed out."
 ERROR_NETWORK_CONNECTION_FAILED = "Failed to establish a new connection"
-ERROR_WRONG_CLIENT_ID = {'message': 'invalid_client',
-                         'code': 40002, 'stat': 'FAIL',
-                         'message_detail': 'The provided client_assertion'
-                                           'was invalid.',
-                         'timestamp': 1573053670}
+ERROR_WRONG_CLIENT_ID = {
+    'message': 'invalid_client',
+    'code': 40002, 'stat': 'FAIL',
+    'message_detail': 'The provided client_assertion was invalid.',
+    'timestamp': 1573053670
+}
 
 
 class TestHealthCheck(unittest.TestCase):
@@ -25,10 +29,9 @@ class TestHealthCheck(unittest.TestCase):
     def setUp(self):
         self.client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
         self.client_wrong_client_id = client.Client(WRONG_CLIENT_ID, CLIENT_SECRET,
-                                               HOST, REDIRECT_URI)
+                                                    HOST, REDIRECT_URI)
 
-    @patch('requests.post', MagicMock(side_effect=requests.Timeout(
-                                                  ERROR_TIMEOUT)))
+    @patch('requests.post', MagicMock(side_effect=requests.Timeout(ERROR_TIMEOUT)))
     def test_health_check_timeout_error(self):
         """
         Test health check failure due to a timeout
@@ -38,7 +41,7 @@ class TestHealthCheck(unittest.TestCase):
             self.assertEqual(e, ERROR_TIMEOUT)
 
     @patch('requests.post', MagicMock(side_effect=requests.ConnectionError(
-                                         ERROR_NETWORK_CONNECTION_FAILED)))
+                                      ERROR_NETWORK_CONNECTION_FAILED)))
     def test_health_check_duo_down_error(self):
         """
         Test health check failure due to a connection error,
@@ -65,9 +68,9 @@ class TestHealthCheck(unittest.TestCase):
         Test health check failure due to bad Duo Cert
         """
         requests_mock.side_effect = requests.exceptions.SSLError(WRONG_CERT_ERROR)
-        with self.assertRaises(client.DuoException):
+        with self.assertRaises(client.DuoException) as e:
             self.client.health_check()
-            self.assertEqual(e, WRONG_CERT_ERROR);
+            self.assertEqual(e, WRONG_CERT_ERROR)
 
     @patch('requests.post')
     @patch('json.loads')

@@ -59,8 +59,7 @@ class TestGenerateRandomAlphanumeric(unittest.TestCase):
         Test that _generate_rand_alphanumeric
         returns string with length STATE_LENGTH
         """
-        generate = self.client._generate_rand_alphanumeric(
-                               client.STATE_LENGTH)
+        generate = self.client._generate_rand_alphanumeric(client.STATE_LENGTH)
         self.assertEqual(client.STATE_LENGTH, len(generate))
 
 

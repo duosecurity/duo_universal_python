@@ -53,7 +53,7 @@ def login_post():
     password = request.form.get('password')
 
     # Check user's first factor
-    if password == None or password == "":
+    if password is None or password == "":
         return render_template("login.html",
                                message="Missing password")
 

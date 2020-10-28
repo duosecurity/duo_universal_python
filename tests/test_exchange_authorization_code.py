@@ -1,7 +1,5 @@
-from jwt.exceptions import InvalidSignatureError
 from mock import MagicMock, patch
 from duo_universal import client
-import json
 import unittest
 import requests
 import jwt
@@ -26,15 +24,19 @@ ERROR_NETWORK_CONNECTION_FAILED = "Failed to establish a new connection"
 
 REQUESTS_POST_ERROR = 400
 REQUESTS_POST_SUCCESS = 200
-ERROR_WRONG_DUO_CODE = {'error': 'invalid_grant',
-                    'error_description': 'The provided authorization grant or '
-                                         'refresh token is invalid, expired, '
-                                         'revoked, does not match '
-                                         'the redirection URI.'}
-ERROR_WRONG_CLIENT_ID = {'error': 'invalid_client',
-                         'error_description': 'Invalid Client assertion: '
-                                              'The `iss` claim must match '
-                                              'the supplied client_id'}
+ERROR_WRONG_DUO_CODE = {
+    'error': 'invalid_grant',
+    'error_description': 'The provided authorization grant or '
+                         'refresh token is invalid, expired, '
+                         'revoked, does not match '
+                         'the redirection URI.'
+}
+ERROR_WRONG_CLIENT_ID = {
+    'error': 'invalid_client',
+    'error_description': 'Invalid Client assertion: '
+                         'The `iss` claim must match '
+                         'the supplied client_id'
+}
 NONE = None
 
 
@@ -43,17 +45,20 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
     def setUp(self):
         self.client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
         self.client_wrong_client_id = client.Client(WRONG_CLIENT_ID, CLIENT_SECRET,
-                                               HOST, REDIRECT_URI)
-        self.jwt_decode = {'auth_result':
-                      {'result': 'allow',
-                       'status': 'allow',
-                       'status_msg': 'Login Successful'},
-                      'aud': CLIENT_ID,
-                      'auth_time': time.time(),
-                      'exp': time.time() + client.FIVE_MINUTES_IN_SECONDS,
-                      'iat': time.time() + 1,
-                      'iss': 'https://{}/oauth/v1/token'.format(HOST),
-                      'preferred_username': USERNAME}
+                                                    HOST, REDIRECT_URI)
+        self.jwt_decode = {
+            "auth_result": {
+                "result": "allow",
+                "status": "allow",
+                "status_msg": "Login Successful",
+            },
+            "aud": CLIENT_ID,
+            "auth_time": time.time(),
+            "exp": time.time() + client.FIVE_MINUTES_IN_SECONDS,
+            "iat": time.time() + 1,
+            "iss": "https://{}/oauth/v1/token".format(HOST),
+            "preferred_username": USERNAME,
+        }
 
     def test_no_duo_code(self):
         """
@@ -65,7 +70,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
             self.assertEqual(e, client.ERR_DUO_CODE)
 
     @patch('requests.post', MagicMock(
-                            side_effect=requests.Timeout(ERROR_TIMEOUT)))
+        side_effect=requests.Timeout(ERROR_TIMEOUT)))
     def test_exchange_authorization_code_timeout_error(self):
         """
         Test that exchange_authorization_code_for_2fa_result
@@ -76,8 +81,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
             self.assertEqual(e, ERROR_TIMEOUT)
 
     @patch('requests.post', MagicMock(
-                            side_effect=requests.ConnectionError(
-                                        ERROR_NETWORK_CONNECTION_FAILED)))
+        side_effect=requests.ConnectionError(ERROR_NETWORK_CONNECTION_FAILED)))
     def test_exchange_authorization_code_duo_down_error(self):
         """
         Test that exchange_authorization_code_for_2fa_result
@@ -120,7 +124,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
     @patch('requests.post')
     def test_exchange_authorization_code_wrong_cert(self, requests_mock):
         """
-        Test that a wrong Duo Cert causes the client to throw a DuoException 
+        Test that a wrong Duo Cert causes the client to throw a DuoException
         """
         requests_mock.side_effect = requests.exceptions.SSLError(WRONG_CERT_ERROR)
         with self.assertRaises(client.DuoException) as e:
@@ -167,7 +171,7 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         encoded_jwt = jwt.encode(self.jwt_decode, WRONG_CLIENT_SECRET, algorithm='HS512')
         id_token = {"id_token": encoded_jwt}
         mock_post.return_value = MockResponse(id_token)
-        with self.assertRaises(client.DuoException):
+        with self.assertRaises(client.DuoException) as e:
             self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
             self.assertEqual(e.message, "Signature verification failed")
 

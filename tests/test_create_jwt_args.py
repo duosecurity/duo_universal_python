@@ -14,12 +14,12 @@ EXPIRATION_TIME = 10 + client.FIVE_MINUTES_IN_SECONDS
 RAND_ALPHANUMERIC_STR = "deadbeef"
 
 SUCCESS_JWT_ARGS = {
-            'iss': CLIENT_ID,
-            'sub': CLIENT_ID,
-            'aud': client.OAUTH_V1_TOKEN_ENDPOINT,
-            'exp': EXPIRATION_TIME,
-            'jti': RAND_ALPHANUMERIC_STR
-        }
+    'iss': CLIENT_ID,
+    'sub': CLIENT_ID,
+    'aud': client.OAUTH_V1_TOKEN_ENDPOINT,
+    'exp': EXPIRATION_TIME,
+    'jti': RAND_ALPHANUMERIC_STR
+}
 
 
 class TestCreateJwtArgs(unittest.TestCase):
@@ -32,10 +32,8 @@ class TestCreateJwtArgs(unittest.TestCase):
         """
         Test that _create_jwt_args creates proper jwt arguments
         """
-        self.client._generate_rand_alphanumeric = MagicMock(
-                                            return_value=RAND_ALPHANUMERIC_STR)
-        actual_jwt_args = self.client._create_jwt_args(
-                                        client.OAUTH_V1_TOKEN_ENDPOINT)
+        self.client._generate_rand_alphanumeric = MagicMock(return_value=RAND_ALPHANUMERIC_STR)
+        actual_jwt_args = self.client._create_jwt_args(client.OAUTH_V1_TOKEN_ENDPOINT)
         self.assertEqual(SUCCESS_JWT_ARGS, actual_jwt_args)
 
 
