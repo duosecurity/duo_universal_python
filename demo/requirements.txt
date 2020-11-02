@@ -1,2 +1,3 @@
 Flask==1.1.2
+configparser==4.0.2
 ./.. # build duo_universal_python from source directory
