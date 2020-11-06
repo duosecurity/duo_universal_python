@@ -24,7 +24,7 @@ except DuoException as e:
 duo_failmode = config['duo']['failmode']
 
 app = Flask(__name__)
-
+app.secret_key = os.urandom(32)
 
 @app.route("/", methods=['GET'])
 def login():
@@ -103,5 +103,4 @@ def duo_callback():
 
 
 if __name__ == '__main__':
-    app.secret_key = os.urandom(32)
     app.run(host="localhost", port=8080)
