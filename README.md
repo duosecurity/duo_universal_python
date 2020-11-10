@@ -1,5 +1,12 @@
 # Duo Universal Python SDK
 
+[![Build Status](https://github.com/duosecurity/duo_universal_python/workflows/Python%20CI/badge.svg)](https://github.com/duosecurity/duo_universal_python/actions)
+[![Issues](https://img.shields.io/github/issues/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/issues)
+[![Forks](https://img.shields.io/github/forks/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/network/members)
+[![Stars](https://img.shields.io/github/stars/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/stargazers)
+[![License](https://img.shields.io/badge/License-View%20License-orange)](https://github.com/duosecurity/duo_universal_python/blob/master/LICENSE)
+
+
 This SDK allows a web developer to quickly add Duo's interactive, self-service, two-factor authentication to any Python web login form. Both Python 2 and Python 3 are supported.
 
 What's here:
