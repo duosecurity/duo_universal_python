@@ -15,7 +15,7 @@ try:
         client_id=config['duo']['client_id'],
         client_secret=config['duo']['client_secret'],
         host=config['duo']['api_hostname'],
-        redirect_uri='http://localhost:8080/duo-callback'
+        redirect_uri=config['duo']['redirect_uri'],
     )
 except DuoException as e:
     print("*** Duo config error. Verify the values in duo.conf are correct ***")
