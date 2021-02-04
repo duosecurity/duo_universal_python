@@ -19,7 +19,7 @@ To use the SDK in your existing development environment, install it from pypi (h
 ```
 pip install duo_universal
 ```
-Once it's installed, see our developer documentation at https://duo.com/docs/duoweb-v4 and `demo/app.py` in this repo for guidance on integrating Duo 2FA into your web application.
+Once it's installed, see our developer documentation at https://duo.com/docs/duoweb and `demo/app.py` in this repo for guidance on integrating Duo 2FA into your web application.
 
 ## Contribute
 To contribute, fork this repo and make a pull request with your changes when they're ready. 
