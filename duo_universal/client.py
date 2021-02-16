@@ -113,16 +113,18 @@ class Client:
         return jwt_args
 
     def __init__(self, client_id, client_secret, host,
-                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH):
+                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True):
         """
         Initializes instance of Client class
 
         Arguments:
 
-        client_id       -- Client ID for the application in Duo
-        client_secret   -- Client secret for the application in Duo
-        host            -- Duo api host
-        redirect_uri    -- Uri to redirect to after a successful auth
+        client_id                -- Client ID for the application in Duo
+        client_secret            -- Client secret for the application in Duo
+        host                     -- Duo api host
+        redirect_uri             -- Uri to redirect to after a successful auth
+        duo_certs                -- (Optional) Provide custom CA certs
+        use_duo_code_attribute   -- (Optional: default true) Flag to use `duo_code` instead of `code` for returned authorization parameter
         """
 
         self._validate_init_config(client_id,
@@ -134,6 +136,7 @@ class Client:
         self._client_secret = client_secret
         self._api_host = host
         self._redirect_uri = redirect_uri
+        self._use_duo_code_attribute = use_duo_code_attribute
 
         # If duo_certs is None set it to the DEFAULT_CA_CERT_PATH
         # so that we make sure we are pinning certs
@@ -216,7 +219,7 @@ class Client:
             'state': state,
             'response_type': 'code',
             'duo_uname': username,
-            'use_duo_code_attribute': 'True',
+            'use_duo_code_attribute': self._use_duo_code_attribute,
         }
 
         request_jwt = jwt.encode(jwt_args,

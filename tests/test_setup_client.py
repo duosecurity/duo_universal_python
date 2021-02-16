@@ -113,6 +113,9 @@ class TestCheckConf(unittest.TestCase):
         new_cert_client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, "DISABLE")
         self.assertFalse(new_cert_client._duo_certs)
 
+    def test_default_duo_code_attribute(self):
+        self.assertEqual(self.client._use_duo_code_attribute, True)
+
 
 if __name__ == '__main__':
     unittest.main()
