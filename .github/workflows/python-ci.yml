@@ -23,3 +23,12 @@ jobs:
         run: flake8
       - name: Test with nose2
         run: nose2
+      - name: Demo dependencies
+        working-directory: demo
+        run: pip install -r requirements.txt
+      - name: Inject dummy example config
+        working-directory: demo
+        run: printf "[duo]\nclient_id=DIAAAAAAAAAAAAAAAAAA\nclient_secret=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\napi_hostname=example.duosecurity.com\nredirect_uri=http://localhost:8080\nfailmode=closed\n" > ./duo.conf
+      - name: Verify flask can load demo
+        working-directory: demo
+        run: flask routes
