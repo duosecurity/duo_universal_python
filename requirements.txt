@@ -1,5 +1,5 @@
 cryptography>=3.2
-PyJWT>=1.7.1, < 2
+PyJWT>=2.0
 pyOpenSSL>=19.0.0
 requests>=2.22.0
 wheel>=0.35.1

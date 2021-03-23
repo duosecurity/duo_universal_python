@@ -298,9 +298,10 @@ class Client:
                 issuer=OAUTH_V1_TOKEN_ENDPOINT.format(self._api_host),
                 leeway=LEEWAY,
                 algorithms=["HS512"],
-                options={'require_exp': True,
-                         'require_iat': True,
-                         'verify_iat': True},
+                options={
+                    'require': ['exp', 'iat'],
+                    'verify_iat': True
+                },
             )
         except Exception as e:
             raise DuoException(e)
