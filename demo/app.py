@@ -72,9 +72,6 @@ def login_post():
 # This route URL must match the redirect_uri passed to the duo client
 @app.route("/duo-callback")
 def duo_callback():
-    if request.args.get('error'):
-        return "Got Error: {}".format(request.args)
-
     # Get state to verify consistency and originality
     state = request.args.get('state')
 
