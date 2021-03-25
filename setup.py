@@ -48,8 +48,9 @@ setup(
     description='Duo Web SDK for two-factor authentication',
     long_description=long_description,
     long_description_content_type='text/markdown',
+    python_requires='>=3',
     classifiers=[
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'License :: OSI Approved :: BSD License'
     ],
     install_requires=install_requires,

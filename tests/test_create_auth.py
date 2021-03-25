@@ -1,4 +1,4 @@
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from duo_universal import client
 from mock import MagicMock, patch
 import jwt

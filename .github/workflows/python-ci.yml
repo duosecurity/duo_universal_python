@@ -7,7 +7,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [2.7, 3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
@@ -17,12 +17,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Dependencies
         run: |
-          pip install -r requirements.txt
+          pip install .
           pip install -r tests/requirements.txt
       - name: Lint with flake8
         run: flake8
-      - name: Test with nose2
-        run: nose2
+      - name: Test with Python3 
+        working-directory: tests
+        run: python3 -m unittest
       - name: Demo dependencies
         working-directory: demo
         run: pip install -r requirements.txt
