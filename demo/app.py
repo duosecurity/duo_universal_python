@@ -37,6 +37,15 @@ def login_post():
     """
     respond to HTTP POST with 2FA as long as health check passes
     """
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    # Check user's first factor.
+    # (In a production application, actually verify that the password is correct)
+    if password is None or password == "":
+        return render_template("login.html",
+                               message="Missing password")
+
     try:
         duo_client.health_check()
     except DuoException:
@@ -49,14 +58,6 @@ def login_post():
             # Otherwise the login fails and redirect user to the login page
             return render_template("login.html",
                                    message="2FA Unavailable. Confirm Duo client/secret/host values are correct")
-
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    # Check user's first factor
-    if password is None or password == "":
-        return render_template("login.html",
-                               message="Missing password")
 
     # Generate random string to act as a state for the exchange
     state = duo_client.generate_state()
