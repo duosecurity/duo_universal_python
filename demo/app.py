@@ -16,6 +16,7 @@ try:
         client_secret=config['duo']['client_secret'],
         host=config['duo']['api_hostname'],
         redirect_uri=config['duo']['redirect_uri'],
+        duo_certs=config['duo'].get('duo_certs', None),
     )
 except DuoException as e:
     print("*** Duo config error. Verify the values in duo.conf are correct ***")
