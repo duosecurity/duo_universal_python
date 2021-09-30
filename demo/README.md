@@ -41,7 +41,7 @@ To allow connections from other devices (e.g. to test the login experience from 
     * Due to API-enforced restrictions, this **must** be a host/domain name, not IP address.
     * The URI **must** be https.
     * Example `redirect_uri` using the computer's hostname: `https://john-11234.local:8080/duo-callback`
-    * Alternatively, a third party services such as [xip.io](http://xip.io) can be used for resolving domain names to internal IP addresses.
+    * Alternatively, a third party services such as [nip.io](http://nip.io) can be used for resolving domain names to internal IP addresses.
 1. Start the demo app by running the following command within the `/demo` directory:
     ```
     flask run --host=0.0.0.0 --port 8080 --cert=adhoc
