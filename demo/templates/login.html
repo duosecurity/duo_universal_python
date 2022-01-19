@@ -1,4 +1,18 @@
 <html>
+<script type="text/javascript">
+function handleClick() {
+let formData = new FormData();
+formData.append('username', 'foo');
+formData.append('password', 'bar');
+
+fetch("/",
+    {
+        body: formData,
+        method: "post"
+    });
+}
+</script>
+
     <body>
         <div class="content">
             <link rel="stylesheet" href='/static/style.css'>
@@ -8,7 +22,7 @@
             <div class="output">
                 <pre class="language-json"><code class="language-json" id="message">{{ message }}</code></pre>
             </div>
-            <form class="input-form" action="/" method="POST">
+            <form class="input-form" action="javascript:handleClick()" method="POST">
                  <div class="form-group">
                     <label for="exampleInputEmail1"><b>Name:</b></label>
                     <input class="form-control" name="username" type="text" placeholder="username" id="exampleInputEmail1">
