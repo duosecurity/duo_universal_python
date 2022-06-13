@@ -99,7 +99,7 @@ def parse():
         metavar=''
     )
 
-    return parser.parse_args()
+    return parser.parse_known_args()[0]
 
 
 config = configparser.ConfigParser()
