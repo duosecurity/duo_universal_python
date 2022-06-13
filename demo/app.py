@@ -1,4 +1,5 @@
 import configparser
+import argparse
 import json
 import os
 import traceback
@@ -7,22 +8,6 @@ from flask import Flask, request, redirect, session, render_template
 
 from duo_universal.client import Client, DuoException
 
-config = configparser.ConfigParser()
-config.read("duo.conf")
-
-try:
-    duo_client = Client(
-        client_id=config['duo']['client_id'],
-        client_secret=config['duo']['client_secret'],
-        host=config['duo']['api_hostname'],
-        redirect_uri=config['duo']['redirect_uri'],
-        duo_certs=config['duo'].get('duo_certs', None),
-    )
-except DuoException as e:
-    print("*** Duo config error. Verify the values in duo.conf are correct ***")
-    raise e
-
-duo_failmode = config['duo']['failmode']
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)
@@ -100,6 +85,41 @@ def duo_callback():
     # Exchange happened successfully so render success page
     return render_template("success.html",
                            message=json.dumps(decoded_token, indent=2, sort_keys=True))
+
+
+def parse():
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="The config section from duo.conf to use",
+        default="duo",
+        metavar=''
+    )
+
+    return parser.parse_args()
+
+
+config = configparser.ConfigParser()
+config.read("duo.conf")
+
+config_section = parse().config
+
+try:
+    duo_client = Client(
+        client_id=config[config_section]['client_id'],
+        client_secret=config[config_section]['client_secret'],
+        host=config[config_section]['api_hostname'],
+        redirect_uri=config[config_section]['redirect_uri'],
+        duo_certs=config[config_section].get('duo_certs', None),
+    )
+except DuoException as e:
+    print("*** Duo config error. Verify the values in duo.conf are correct ***")
+    raise e
+
+duo_failmode = config[config_section]['failmode']
 
 
 if __name__ == '__main__':
