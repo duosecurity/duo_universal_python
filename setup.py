@@ -53,7 +53,6 @@ setup(
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: BSD License'
     ],
-    data_files=[('.', ['requirements.txt'])],
     install_requires=install_requires,
     tests_require=tests_require
 )
