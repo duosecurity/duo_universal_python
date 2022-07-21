@@ -9,14 +9,14 @@
 
 This SDK allows a web developer to quickly add Duo's interactive, self-service, two-factor authentication to any Python3 web login form. Only Python 3 is supported.
 
-# Tested Against Python Versions:
+## Tested Against Python Versions:
 - 3.6
 - 3.7
 - 3.8
 - 3.9
 - 3.10
 
-What's here:
+## What's here:
 * `duo_universal` - The Python Duo SDK for interacting with the Duo Universal Prompt
 * `demo` - An example web application with Duo integrated
 * `tests` - Test cases
