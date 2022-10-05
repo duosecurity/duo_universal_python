@@ -123,4 +123,15 @@ duo_failmode = config[config_section]['failmode']
 
 
 if __name__ == '__main__':
-    app.run(host="localhost", port=8080)
+    server_params = {
+        'host': 'localhost',
+        'port': '8080',
+    }
+    if config[config_section].get('tls_cert_file') and config[config_section].get('tls_key_file'):
+        server_params['ssl_context'] = (
+            config[config_section]['tls_cert_file'],
+            config[config_section]['tls_key_file']
+        )
+    if config[config_section].get('bind_host'):
+        server_params['host'] = config[config_section]['bind_host']
+    app.run(**server_params)
