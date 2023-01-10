@@ -14,6 +14,7 @@ This SDK allows a web developer to quickly add Duo's interactive, self-service, 
 - 3.8
 - 3.9
 - 3.10
+- 3.11
 
 ## What's here:
 * `duo_universal` - The Python Duo SDK for interacting with the Duo Universal Prompt
