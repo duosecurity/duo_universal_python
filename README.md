@@ -18,7 +18,7 @@ This SDK allows a web developer to quickly add Duo's interactive, self-service, 
 
 ## TLS 1.2 and 1.3 Support
 
-Duo_client_python uses Python's ssl module and OpenSSL for TLS operations. Python versions 2.7 (and higher) and 3.5 (and higher) have both TLS 1.2 and TLS 1.3 support.
+Duo_universal_python uses Python's ssl module and OpenSSL for TLS operations. Python versions 2.7 (and higher) and 3.5 (and higher) have both TLS 1.2 and TLS 1.3 support.
 
 ## What's here:
 * `duo_universal` - The Python Duo SDK for interacting with the Duo Universal Prompt
