@@ -11,6 +11,7 @@ HOST = "api-XXXXXXX.test.duosecurity.com"
 WRONG_HOST = "api-XXXXXXX.test.duosecurity.com"
 REDIRECT_URI = "https://www.example.com"
 CA_CERT_NEW = "/path/to/cert/ca_cert_new.pem"
+PROXY_HOST = "http://proxy.example.com:8001"
 NONE = None
 
 
@@ -115,6 +116,26 @@ class TestCheckConf(unittest.TestCase):
 
     def test_default_duo_code_attribute(self):
         self.assertEqual(self.client._use_duo_code_attribute, True)
+
+    def test_proxy_unset(self):
+        plain_client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        self.assertEqual(plain_client._http_proxy, NONE)
+
+    def test_proxy_set_on_args(self):
+        client_with_proxy = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, NONE, True, PROXY_HOST)
+        self.assertEqual(client_with_proxy._http_proxy, {'https': PROXY_HOST})
+
+    def test_proxy_set_on_kwargs(self):
+        client_with_proxy = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, http_proxy=PROXY_HOST)
+        self.assertEqual(client_with_proxy._http_proxy, {'https': PROXY_HOST})
+
+    def test_proxy_set_off_args(self):
+        client_with_no_proxy = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, NONE, True, NONE)
+        self.assertEqual(client_with_no_proxy._http_proxy, NONE)
+
+    def test_proxy_set_off_kwargs(self):
+        client_with_no_proxy = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, http_proxy=NONE)
+        self.assertEqual(client_with_no_proxy._http_proxy, NONE)
 
 
 if __name__ == '__main__':

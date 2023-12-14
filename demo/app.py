@@ -114,6 +114,7 @@ try:
         host=config[config_section]['api_hostname'],
         redirect_uri=config[config_section]['redirect_uri'],
         duo_certs=config[config_section].get('duo_certs', None),
+        http_proxy=config[config_section].get('http_proxy', None),
     )
 except DuoException as e:
     print("*** Duo config error. Verify the values in duo.conf are correct ***")
