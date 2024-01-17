@@ -113,7 +113,7 @@ class Client:
         return jwt_args
 
     def __init__(self, client_id, client_secret, host,
-                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True):
+                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True, http_proxy=None):
         """
         Initializes instance of Client class
 
@@ -125,6 +125,7 @@ class Client:
         redirect_uri             -- Uri to redirect to after a successful auth
         duo_certs                -- (Optional) Provide custom CA certs
         use_duo_code_attribute   -- (Optional: default true) Flag to use `duo_code` instead of `code` for returned authorization parameter
+        http_proxy               -- (Optional) HTTP proxy to tunnel requests through
         """
 
         self._validate_init_config(client_id,
@@ -147,6 +148,11 @@ class Client:
                 self._duo_certs = duo_certs
         else:
             self._duo_certs = DEFAULT_CA_CERT_PATH
+
+        if http_proxy is not None:
+            self._http_proxy = {'https': http_proxy}
+        else:
+            self._http_proxy = None
 
     def generate_state(self):
         """
@@ -181,7 +187,8 @@ class Client:
         try:
             response = requests.post(health_check_endpoint,
                                      data=all_args,
-                                     verify=self._duo_certs)
+                                     verify=self._duo_certs,
+                                     proxies=self._http_proxy)
             res = json.loads(response.content)
             if res['stat'] != 'OK':
                 raise DuoException(res)
@@ -282,7 +289,8 @@ class Client:
                                      params=all_args,
                                      headers={"user-agent":
                                               user_agent},
-                                     verify=self._duo_certs)
+                                     verify=self._duo_certs,
+                                     proxies=self._http_proxy)
         except Exception as e:
             raise DuoException(e)
 
