@@ -12,6 +12,7 @@ WRONG_HOST = "api-XXXXXXX.test.duosecurity.com"
 REDIRECT_URI = "https://www.example.com"
 CA_CERT_NEW = "/path/to/cert/ca_cert_new.pem"
 PROXY_HOST = "http://proxy.example.com:8001"
+EXP_SECONDS = client.FIVE_MINUTES_IN_SECONDS
 NONE = None
 
 
@@ -26,7 +27,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(SHORT_CLIENT_ID, CLIENT_SECRET,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_ID)
 
     def test_long_client_id(self):
@@ -35,7 +36,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(LONG_CLIENT_ID, CLIENT_SECRET,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_ID)
 
     def test_no_client_id(self):
@@ -44,7 +45,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(NONE, CLIENT_SECRET,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_ID)
 
     def test_short_client_secret(self):
@@ -53,7 +54,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(CLIENT_ID, SHORT_CLIENT_SECRET,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_SECRET)
 
     def test_long_client_secret(self):
@@ -62,7 +63,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(CLIENT_ID, LONG_CLIENT_SECRET,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_SECRET)
 
     def test_no_client_secret(self):
@@ -71,7 +72,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(CLIENT_ID, NONE,
-                                              HOST, REDIRECT_URI)
+                                              HOST, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_CLIENT_SECRET)
 
     def test_no_host(self):
@@ -80,7 +81,7 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET,
-                                              NONE, REDIRECT_URI)
+                                              NONE, REDIRECT_URI, EXP_SECONDS)
             self.assertEqual(e, client.ERR_API_HOST)
 
     def test_no_redirect_uri(self):
@@ -89,15 +90,34 @@ class TestCheckConf(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET,
-                                              HOST, NONE)
+                                              HOST, NONE, EXP_SECONDS)
             self.assertEqual(e, client.ERR_REDIRECT_URI)
+
+    def test_exp_seconds_too_long(self):
+        """
+        Test to validate that a user can't set an expiry longer than 5 minutes.
+        """
+        with self.assertRaises(client.DuoException) as e:
+            self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, 2*EXP_SECONDS)
+            self.assertEqual(e, client.ERR_EXP_SECONDS_TOO_LONG)
+        # Even if the end user forcefully sets the expiry, ensure the clamped value is in spec.
+        self.client._exp_seconds = 2*EXP_SECONDS
+        self.assertEqual(self.client._clamped_expiry_duration, client.FIVE_MINUTES_IN_SECONDS)
+
+    def test_exp_seconds_too_short(self):
+        """
+        Test to validate that a user can't set an expiry shorter than 0.
+        """
+        with self.assertRaises(client.DuoException) as e:
+            self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, -1)
+            self.assertEqual(e, client.ERR_EXP_SECONDS_TOO_SHORT)
 
     def test_successful(self):
         """
         Test successful _validate_init_config
         """
         self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET,
-                                          HOST, REDIRECT_URI)
+                                          HOST, REDIRECT_URI, EXP_SECONDS)
 
     def test_no_duo_cert(self):
         self.assertEqual(self.client._duo_certs, client.DEFAULT_CA_CERT_PATH)

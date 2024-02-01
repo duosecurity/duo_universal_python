@@ -51,6 +51,7 @@ class TestCreateAuthUrlInputs(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_create_auth_url_inputs(USERNAME, STATE, nonce=SHORT_STATE)
+            self.assertEqual(e, client.ERR_NONCE_LEN)
 
     def test_long_nonce(self):
         """
@@ -59,6 +60,7 @@ class TestCreateAuthUrlInputs(unittest.TestCase):
         """
         with self.assertRaises(client.DuoException) as e:
             self.client._validate_create_auth_url_inputs(USERNAME, STATE, nonce=LONG_LENGTH)
+            self.assertEqual(e, client.ERR_NONCE_LEN)
 
     def test_no_username(self):
         """
