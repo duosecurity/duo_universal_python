@@ -12,7 +12,7 @@ from duo_universal.version import __version__
 CLIENT_ID_LENGTH = 20
 CLIENT_SECRET_LENGTH = 40
 JTI_LENGTH = 36
-MINIMUM_STATE_LENGTH = 22
+MINIMUM_STATE_LENGTH = 16
 MAXIMUM_STATE_LENGTH = 1024
 STATE_LENGTH = 36
 SUCCESS_STATUS_CODE = 200
@@ -33,6 +33,12 @@ ERR_STATE_LEN = ('State must be at least {MIN} characters long and no longer tha
     MIN=MINIMUM_STATE_LENGTH,
     MAX=MAXIMUM_STATE_LENGTH
 )
+ERR_NONCE_LEN = ('Nonce must be at least {MIN} characters long and no longer than {MAX} characters').format(
+    MIN=MINIMUM_STATE_LENGTH,
+    MAX=MAXIMUM_STATE_LENGTH
+)
+ERR_EXP_SECONDS_TOO_LONG = 'Client may not be configured for a JWT expiry longer than five minutes.'
+ERR_EXP_SECONDS_TOO_SHORT = 'Invalid JWT expiry duration.'
 
 API_HOST_URI_FORMAT = "https://{}"
 OAUTH_V1_HEALTH_CHECK_ENDPOINT = "https://{}/oauth/v1/health_check"
@@ -48,6 +54,9 @@ class DuoException(Exception):
 
 
 class Client:
+    @property
+    def _clamped_expiry_duration(self):
+        return max(min(FIVE_MINUTES_IN_SECONDS, self._exp_seconds), 1)
 
     def _generate_rand_alphanumeric(self, length):
         """
@@ -71,7 +80,7 @@ class Client:
         return ''.join(generator.choice(characters) for i in range(length))
 
     def _validate_init_config(self, client_id, client_secret,
-                              api_host, redirect_uri):
+                              api_host, redirect_uri, exp_seconds):
         """
         Verifies __init__ parameters
 
@@ -81,6 +90,7 @@ class Client:
         client_secret   -- Client secret for the application in Duo
         host            -- Duo api host
         redirect_uri    -- Uri to redirect to after a successful auth
+        exp_seconds     -- The JWT expiry window
 
         Raises:
 
@@ -94,8 +104,14 @@ class Client:
             raise DuoException(ERR_API_HOST)
         if not redirect_uri:
             raise DuoException(ERR_REDIRECT_URI)
+        if exp_seconds > FIVE_MINUTES_IN_SECONDS:
+            raise DuoException(ERR_EXP_SECONDS_TOO_LONG)
+        elif exp_seconds < 0:
+            raise DuoException(ERR_EXP_SECONDS_TOO_SHORT)
 
-    def _validate_create_auth_url_inputs(self, username, state):
+    def _validate_create_auth_url_inputs(self, username, state, nonce=None):
+        if nonce and (MINIMUM_STATE_LENGTH >= len(nonce) or len(nonce) >= MAXIMUM_STATE_LENGTH):
+            raise DuoException(ERR_NONCE_LEN)
         if not state or not (MINIMUM_STATE_LENGTH <= len(state) <= MAXIMUM_STATE_LENGTH):
             raise DuoException(ERR_STATE_LEN)
         if not username:
@@ -106,14 +122,15 @@ class Client:
             'iss': self._client_id,
             'sub': self._client_id,
             'aud': endpoint,
-            'exp': time.time() + FIVE_MINUTES_IN_SECONDS,
+            'exp': time.time() + self._clamped_expiry_duration,
             'jti': self._generate_rand_alphanumeric(JTI_LENGTH)
         }
 
         return jwt_args
 
     def __init__(self, client_id, client_secret, host,
-                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True, http_proxy=None):
+                 redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True, http_proxy=None,
+                 exp_seconds=FIVE_MINUTES_IN_SECONDS):
         """
         Initializes instance of Client class
 
@@ -126,12 +143,14 @@ class Client:
         duo_certs                -- (Optional) Provide custom CA certs
         use_duo_code_attribute   -- (Optional: default true) Flag to use `duo_code` instead of `code` for returned authorization parameter
         http_proxy               -- (Optional) HTTP proxy to tunnel requests through
+        exp_seconds              -- (Optional) The number of seconds used for JWT expiry. Must be be at most 5 minutes.
         """
 
         self._validate_init_config(client_id,
                                    client_secret,
                                    host,
-                                   redirect_uri)
+                                   redirect_uri,
+                                   exp_seconds)
 
         self._client_id = client_id
         self._client_secret = client_secret
@@ -153,6 +172,7 @@ class Client:
             self._http_proxy = {'https': http_proxy}
         else:
             self._http_proxy = None
+        self._exp_seconds = exp_seconds
 
     def generate_state(self):
         """
@@ -198,21 +218,23 @@ class Client:
 
         return res
 
-    def create_auth_url(self, username, state):
+    def create_auth_url(self, username, state, nonce=None):
         """Generate uri to Duo's prompt
 
         Arguments:
 
         username        -- username trying to authenticate with Duo
-        state           -- Randomly generated character string of at least 22
-                           chars returned to the integration by Duo after 2FA
+        state           -- Randomly generated character string of at least 16
+                           and at most 1024 characters returned to the integration by Duo after 2FA
+        nonce           -- Randomly generated character string of at least 16
+                           and at most 1024 characters used as the nonce for the underlying OIDC flow
 
         Returns:
 
         Authorization uri to redirect to for the Duo prompt
         """
 
-        self._validate_create_auth_url_inputs(username, state)
+        self._validate_create_auth_url_inputs(username, state, nonce=nonce)
 
         authorize_endpoint = OAUTH_V1_AUTHORIZE_ENDPOINT.format(self._api_host)
 
@@ -222,7 +244,7 @@ class Client:
             'client_id': self._client_id,
             'iss': self._client_id,
             'aud': API_HOST_URI_FORMAT.format(self._api_host),
-            'exp': time.time() + FIVE_MINUTES_IN_SECONDS,
+            'exp': time.time() + self._clamped_expiry_duration,
             'state': state,
             'response_type': 'code',
             'duo_uname': username,
@@ -237,6 +259,8 @@ class Client:
             'client_id': self._client_id,
             'request': request_jwt,
         }
+        if nonce:
+            all_args['nonce'] = nonce
 
         query_string = urlencode(all_args)
         authorization_uri = "{}?{}".format(authorize_endpoint, query_string)

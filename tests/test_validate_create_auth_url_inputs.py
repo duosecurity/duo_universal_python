@@ -44,6 +44,24 @@ class TestCreateAuthUrlInputs(unittest.TestCase):
             self.client._validate_create_auth_url_inputs(USERNAME, LONG_LENGTH)
             self.assertEqual(e, client.ERR_STATE)
 
+    def test_short_nonce(self):
+        """
+        Test _validate_create_auth_url_inputs
+        throws a DuoException if the nonce is set and is too short
+        """
+        with self.assertRaises(client.DuoException) as e:
+            self.client._validate_create_auth_url_inputs(USERNAME, STATE, nonce=SHORT_STATE)
+            self.assertEqual(e, client.ERR_NONCE_LEN)
+
+    def test_long_nonce(self):
+        """
+        Test _validate_create_auth_url_inputs
+        throws a DuoException if the nonce is set and is too long
+        """
+        with self.assertRaises(client.DuoException) as e:
+            self.client._validate_create_auth_url_inputs(USERNAME, STATE, nonce=LONG_LENGTH)
+            self.assertEqual(e, client.ERR_NONCE_LEN)
+
     def test_no_username(self):
         """
         Test _validate_create_auth_url_inputs
@@ -59,6 +77,13 @@ class TestCreateAuthUrlInputs(unittest.TestCase):
         does not throw an error for valid inputs
         """
         self.client._validate_create_auth_url_inputs(USERNAME, STATE)
+
+    def test_success_with_nonce(self):
+        """
+        Test _validate_create_auth_url_inputs
+        does not throw an error for valid inputs
+        """
+        self.client._validate_create_auth_url_inputs(USERNAME, STATE, nonce=STATE)
 
 
 if __name__ == '__main__':
