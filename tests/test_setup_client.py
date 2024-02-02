@@ -98,10 +98,10 @@ class TestCheckConf(unittest.TestCase):
         Test to validate that a user can't set an expiry longer than 5 minutes.
         """
         with self.assertRaises(client.DuoException) as e:
-            self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, 2*EXP_SECONDS)
+            self.client._validate_init_config(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, 2 * EXP_SECONDS)
             self.assertEqual(e, client.ERR_EXP_SECONDS_TOO_LONG)
         # Even if the end user forcefully sets the expiry, ensure the clamped value is in spec.
-        self.client._exp_seconds = 2*EXP_SECONDS
+        self.client._exp_seconds = 2 * EXP_SECONDS
         self.assertEqual(self.client._clamped_expiry_duration, client.FIVE_MINUTES_IN_SECONDS)
 
     def test_exp_seconds_too_short(self):
