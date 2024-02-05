@@ -24,7 +24,7 @@ jobs:
         pip install setuptools wheel twine
     - name: Generate SBOM
       run: |
-        pip install cyclonedx-bom
+        pip install cyclonedx-bom==3.11.7
         ./scripts/make-sbom.sh
     - name: Build and publish
       env:
