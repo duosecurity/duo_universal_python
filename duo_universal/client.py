@@ -218,7 +218,7 @@ class Client:
 
         return res
 
-    def create_auth_url(self, username, state, nonce=None):
+    def create_auth_url(self, username, state, nonce=None, dest_app_name=None):
         """Generate uri to Duo's prompt
 
         Arguments:
@@ -228,6 +228,7 @@ class Client:
                            and at most 1024 characters returned to the integration by Duo after 2FA
         nonce           -- Randomly generated character string of at least 16
                            and at most 1024 characters used as the nonce for the underlying OIDC flow
+        dest_app_name   -- Optional user-facing application name shown by Duo in various UI areas.
 
         Returns:
 
@@ -237,7 +238,6 @@ class Client:
         self._validate_create_auth_url_inputs(username, state, nonce=nonce)
 
         authorize_endpoint = OAUTH_V1_AUTHORIZE_ENDPOINT.format(self._api_host)
-
         jwt_args = {
             'scope': 'openid',
             'redirect_uri': self._redirect_uri,
@@ -250,6 +250,8 @@ class Client:
             'duo_uname': username,
             'use_duo_code_attribute': self._use_duo_code_attribute,
         }
+        if dest_app_name:
+            jwt_args['dest_app_name'] = dest_app_name
 
         request_jwt = jwt.encode(jwt_args,
                                  self._client_secret,
