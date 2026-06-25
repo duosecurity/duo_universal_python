@@ -130,7 +130,7 @@ class Client:
 
     def __init__(self, client_id, client_secret, host,
                  redirect_uri, duo_certs=DEFAULT_CA_CERT_PATH, use_duo_code_attribute=True, http_proxy=None,
-                 exp_seconds=FIVE_MINUTES_IN_SECONDS):
+                 exp_seconds=FIVE_MINUTES_IN_SECONDS, disable_ca_pinning=False):
         """
         Initializes instance of Client class
 
@@ -144,6 +144,10 @@ class Client:
         use_duo_code_attribute   -- (Optional: default true) Flag to use `duo_code` instead of `code` for returned authorization parameter
         http_proxy               -- (Optional) HTTP proxy to tunnel requests through
         exp_seconds              -- (Optional) The number of seconds used for JWT expiry. Must be be at most 5 minutes.
+        disable_ca_pinning       -- (Optional: default false) If True, uses the system's default
+                                    trusted CA certificates instead of Duo's bundled CA certificates.
+                                    TLS verification remains active. Cannot be used together with
+                                    custom duo_certs.
         """
 
         self._validate_init_config(client_id,
@@ -158,9 +162,16 @@ class Client:
         self._redirect_uri = redirect_uri
         self._use_duo_code_attribute = use_duo_code_attribute
 
-        # If duo_certs is None set it to the DEFAULT_CA_CERT_PATH
-        # so that we make sure we are pinning certs
-        if duo_certs is not None:
+        if disable_ca_pinning and duo_certs not in (None, DEFAULT_CA_CERT_PATH):
+            raise DuoException(
+                "Cannot both disable CA pinning and provide custom CA certificates"
+            )
+
+        self._disable_ca_pinning = disable_ca_pinning
+
+        if disable_ca_pinning:
+            self._duo_certs = True
+        elif duo_certs is not None:
             if duo_certs == "DISABLE":
                 self._duo_certs = False
             else:
