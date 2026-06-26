@@ -1,3 +1,4 @@
+from unittest.mock import patch, MagicMock
 from duo_universal import client
 import unittest
 
@@ -156,6 +157,100 @@ class TestCheckConf(unittest.TestCase):
     def test_proxy_set_off_kwargs(self):
         client_with_no_proxy = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI, http_proxy=NONE)
         self.assertEqual(client_with_no_proxy._http_proxy, NONE)
+
+
+class TestDisableCaPinning(unittest.TestCase):
+
+    def test_default_is_pinning_enabled(self):
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        self.assertFalse(c._disable_ca_pinning)
+        self.assertEqual(c._duo_certs, client.DEFAULT_CA_CERT_PATH)
+
+    def test_disable_ca_pinning_true(self):
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          disable_ca_pinning=True)
+        self.assertTrue(c._disable_ca_pinning)
+        self.assertTrue(c._duo_certs)
+
+    def test_disable_ca_pinning_with_default_duo_certs(self):
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          duo_certs=client.DEFAULT_CA_CERT_PATH, disable_ca_pinning=True)
+        self.assertTrue(c._disable_ca_pinning)
+        self.assertTrue(c._duo_certs)
+
+    def test_disable_ca_pinning_with_none_duo_certs(self):
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          duo_certs=None, disable_ca_pinning=True)
+        self.assertTrue(c._disable_ca_pinning)
+        self.assertTrue(c._duo_certs)
+
+    def test_disable_ca_pinning_with_custom_duo_certs_raises(self):
+        with self.assertRaises(client.DuoException) as ctx:
+            client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          duo_certs=CA_CERT_NEW, disable_ca_pinning=True)
+        self.assertIn("Cannot both disable CA pinning", str(ctx.exception))
+
+    def test_disable_ca_pinning_with_disable_duo_certs_raises(self):
+        with self.assertRaises(client.DuoException) as ctx:
+            client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          duo_certs="DISABLE", disable_ca_pinning=True)
+        self.assertIn("Cannot both disable CA pinning", str(ctx.exception))
+
+    def test_disable_ca_pinning_false_preserves_existing_behavior(self):
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          disable_ca_pinning=False)
+        self.assertEqual(c._duo_certs, client.DEFAULT_CA_CERT_PATH)
+
+
+class TestDisableCaPinningRequests(unittest.TestCase):
+
+    @patch('requests.post')
+    def test_health_check_pinning_disabled_uses_system_trust_store(self, requests_mock):
+        requests_mock.return_value = MagicMock(content=b'{"stat": "OK", "response": {"timestamp": 1}}')
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          disable_ca_pinning=True)
+        c.health_check()
+        _, kwargs = requests_mock.call_args
+        self.assertTrue(kwargs['verify'])
+        self.assertIsNot(kwargs['verify'], client.DEFAULT_CA_CERT_PATH)
+
+    @patch('requests.post')
+    def test_health_check_pinning_enabled_uses_bundled_certs(self, requests_mock):
+        requests_mock.return_value = MagicMock(content=b'{"stat": "OK", "response": {"timestamp": 1}}')
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        c.health_check()
+        _, kwargs = requests_mock.call_args
+        self.assertEqual(kwargs['verify'], client.DEFAULT_CA_CERT_PATH)
+
+    @patch('requests.post')
+    def test_token_exchange_pinning_disabled_uses_system_trust_store(self, requests_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id_token': 'fake'}
+        requests_mock.return_value = mock_response
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          disable_ca_pinning=True)
+        try:
+            c.exchange_authorization_code_for_2fa_result('code', 'user')
+        except client.DuoException:
+            pass
+        _, kwargs = requests_mock.call_args
+        self.assertTrue(kwargs['verify'])
+        self.assertIsNot(kwargs['verify'], client.DEFAULT_CA_CERT_PATH)
+
+    @patch('requests.post')
+    def test_token_exchange_pinning_enabled_uses_bundled_certs(self, requests_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id_token': 'fake'}
+        requests_mock.return_value = mock_response
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        try:
+            c.exchange_authorization_code_for_2fa_result('code', 'user')
+        except client.DuoException:
+            pass
+        _, kwargs = requests_mock.call_args
+        self.assertEqual(kwargs['verify'], client.DEFAULT_CA_CERT_PATH)
 
 
 if __name__ == '__main__':
