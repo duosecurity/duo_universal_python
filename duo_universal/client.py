@@ -45,6 +45,7 @@ OAUTH_V1_HEALTH_CHECK_ENDPOINT = "https://{}/oauth/v1/health_check"
 OAUTH_V1_AUTHORIZE_ENDPOINT = "https://{}/oauth/v1/authorize"
 OAUTH_V1_TOKEN_ENDPOINT = "https://{}/oauth/v1/token"
 DEFAULT_CA_CERT_PATH = os.path.join(os.path.dirname(__file__), 'ca_certs.pem')
+CA_BUNDLE_VERSION = "1.0"
 
 CLIENT_ASSERT_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
@@ -316,10 +317,15 @@ class Client:
                                            algorithm='HS512')
         }
         try:
+            ca_pinning_status = "disabled" if self._disable_ca_pinning else "enabled"
             user_agent = ("duo_universal_python/{version} "
-                          "python/{python_version} {os_name}").format(version=__version__,
-                                                                      python_version=platform.python_version(),
-                                                                      os_name=platform.platform())
+                          "python/{python_version} {os_name} "
+                          "ca_bundle/{ca_bundle_version} "
+                          "ca_pinning: {ca_pinning_status}").format(version=__version__,
+                                                                    python_version=platform.python_version(),
+                                                                    os_name=platform.platform(),
+                                                                    ca_bundle_version=CA_BUNDLE_VERSION,
+                                                                    ca_pinning_status=ca_pinning_status)
             response = requests.post(token_endpoint,
                                      params=all_args,
                                      headers={"user-agent":
