@@ -281,7 +281,7 @@ class TestUserAgent(unittest.TestCase):
         except client.DuoException:
             pass
         _, kwargs = requests_mock.call_args
-        self.assertIn('ca_pinning: enabled', kwargs['headers']['user-agent'])
+        self.assertIn('(ca_pinning=enabled)', kwargs['headers']['user-agent'])
 
     @patch('requests.post')
     def test_user_agent_ca_pinning_disabled(self, requests_mock):
@@ -296,7 +296,7 @@ class TestUserAgent(unittest.TestCase):
         except client.DuoException:
             pass
         _, kwargs = requests_mock.call_args
-        self.assertIn('ca_pinning: disabled', kwargs['headers']['user-agent'])
+        self.assertIn('(ca_pinning=disabled)', kwargs['headers']['user-agent'])
 
 
 if __name__ == '__main__':

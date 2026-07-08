@@ -321,11 +321,11 @@ class Client:
             user_agent = ("duo_universal_python/{version} "
                           "python/{python_version} {os_name} "
                           "ca_bundle/{ca_bundle_version} "
-                          "ca_pinning: {ca_pinning_status}").format(version=__version__,
-                                                                    python_version=platform.python_version(),
-                                                                    os_name=platform.platform(),
-                                                                    ca_bundle_version=CA_BUNDLE_VERSION,
-                                                                    ca_pinning_status=ca_pinning_status)
+                          "(ca_pinning={ca_pinning_status})").format(version=__version__,
+                                                                     python_version=platform.python_version(),
+                                                                     os_name=platform.platform(),
+                                                                     ca_bundle_version=CA_BUNDLE_VERSION,
+                                                                     ca_pinning_status=ca_pinning_status)
             response = requests.post(token_endpoint,
                                      params=all_args,
                                      headers={"user-agent":
