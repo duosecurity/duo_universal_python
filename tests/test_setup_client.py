@@ -253,5 +253,51 @@ class TestDisableCaPinningRequests(unittest.TestCase):
         self.assertEqual(kwargs['verify'], client.DEFAULT_CA_CERT_PATH)
 
 
+class TestUserAgent(unittest.TestCase):
+
+    @patch('requests.post')
+    def test_user_agent_includes_ca_bundle_version(self, requests_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id_token': 'fake'}
+        requests_mock.return_value = mock_response
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        try:
+            c.exchange_authorization_code_for_2fa_result('code', 'user')
+        except client.DuoException:
+            pass
+        _, kwargs = requests_mock.call_args
+        self.assertIn('ca_bundle/1.0', kwargs['headers']['user-agent'])
+
+    @patch('requests.post')
+    def test_user_agent_ca_pinning_enabled(self, requests_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id_token': 'fake'}
+        requests_mock.return_value = mock_response
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+        try:
+            c.exchange_authorization_code_for_2fa_result('code', 'user')
+        except client.DuoException:
+            pass
+        _, kwargs = requests_mock.call_args
+        self.assertIn('(ca_pinning=enabled)', kwargs['headers']['user-agent'])
+
+    @patch('requests.post')
+    def test_user_agent_ca_pinning_disabled(self, requests_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id_token': 'fake'}
+        requests_mock.return_value = mock_response
+        c = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI,
+                          disable_ca_pinning=True)
+        try:
+            c.exchange_authorization_code_for_2fa_result('code', 'user')
+        except client.DuoException:
+            pass
+        _, kwargs = requests_mock.call_args
+        self.assertIn('(ca_pinning=disabled)', kwargs['headers']['user-agent'])
+
+
 if __name__ == '__main__':
     unittest.main()
