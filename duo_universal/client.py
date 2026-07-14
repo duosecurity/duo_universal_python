@@ -11,6 +11,7 @@ from duo_universal.version import __version__
 
 CLIENT_ID_LENGTH = 20
 CLIENT_SECRET_LENGTH = 40
+HMAC_SHA512_KEY_LENGTH = 64
 JTI_LENGTH = 36
 MINIMUM_STATE_LENGTH = 16
 MAXIMUM_STATE_LENGTH = 1024
@@ -158,7 +159,7 @@ class Client:
                                    exp_seconds)
 
         self._client_id = client_id
-        self._client_secret = client_secret
+        self._client_secret = client_secret.encode("utf-8").ljust(HMAC_SHA512_KEY_LENGTH, b'\x00')
         self._api_host = host
         self._redirect_uri = redirect_uri
         self._use_duo_code_attribute = use_duo_code_attribute
