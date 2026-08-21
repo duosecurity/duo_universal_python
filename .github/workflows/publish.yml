@@ -21,7 +21,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine
+        # setuptools is pinned below 81 because cyclonedx-bom 3.11.7 imports
+        # pkg_resources, which setuptools removed in 81. Remove this pin once
+        # the SBOM tooling is upgraded (cyclonedx-bom 7.x drops pkg_resources).
+        pip install "setuptools<81" wheel twine
     - name: Generate SBOM
       run: |
         pip install cyclonedx-bom==3.11.7
