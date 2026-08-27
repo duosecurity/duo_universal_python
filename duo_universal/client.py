@@ -11,6 +11,12 @@ from duo_universal.version import __version__
 
 CLIENT_ID_LENGTH = 20
 CLIENT_SECRET_LENGTH = 40
+# Minimum recommended HMAC key length in bytes for SHA512 (RFC 7518 Section 3.2).
+# Duo client secrets are shorter than this, so the key is zero-padded up to this
+# length before signing/verifying. HMAC zero-pads the key to the hash block size
+# regardless, so padding produces an identical signature but avoids PyJWT's
+# InsecureKeyLengthWarning.
+MINIMUM_HMAC_KEY_LENGTH = 64
 JTI_LENGTH = 36
 MINIMUM_STATE_LENGTH = 16
 MAXIMUM_STATE_LENGTH = 1024
@@ -159,6 +165,10 @@ class Client:
 
         self._client_id = client_id
         self._client_secret = client_secret
+        # Zero-pad the secret up to the minimum recommended HMAC key length so
+        # PyJWT does not emit an InsecureKeyLengthWarning. This does not change
+        # the resulting signature (see MINIMUM_HMAC_KEY_LENGTH).
+        self._signing_key = client_secret.encode('utf-8').ljust(MINIMUM_HMAC_KEY_LENGTH, b'\x00')
         self._api_host = host
         self._redirect_uri = redirect_uri
         self._use_duo_code_attribute = use_duo_code_attribute
@@ -212,7 +222,7 @@ class Client:
 
         all_args = {
             'client_assertion': jwt.encode(jwt_args,
-                                           self._client_secret,
+                                           self._signing_key,
                                            algorithm='HS512'),
             'client_id': self._client_id
         }
@@ -264,7 +274,7 @@ class Client:
         }
 
         request_jwt = jwt.encode(jwt_args,
-                                 self._client_secret,
+                                 self._signing_key,
                                  algorithm='HS512')
         all_args = {
             'response_type': 'code',
@@ -313,7 +323,7 @@ class Client:
             'client_id': self._client_id,
             'client_assertion_type': CLIENT_ASSERT_TYPE,
             'client_assertion': jwt.encode(jwt_args,
-                                           self._client_secret,
+                                           self._signing_key,
                                            algorithm='HS512')
         }
         try:
@@ -342,7 +352,7 @@ class Client:
         try:
             decoded_token = jwt.decode(
                 response.json()['id_token'],
-                self._client_secret,
+                self._signing_key,
                 audience=self._client_id,
                 issuer=OAUTH_V1_TOKEN_ENDPOINT.format(self._api_host),
                 leeway=LEEWAY,
