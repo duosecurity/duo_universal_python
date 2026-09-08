@@ -241,7 +241,8 @@ class Client:
         return res
 
     def create_auth_url(self, username, state, nonce=None, dest_app_name=None,
-                        dest_app_id=None, display_username=None):
+                        dest_app_id=None, display_username=None, max_age=None,
+                        prompt=None):
         """Generate uri to Duo's prompt
 
         Arguments:
@@ -257,6 +258,12 @@ class Client:
                             application; not shown to users
         display_username -- (Optional) Username shown in the Duo Mobile "user" field for Push.
                             Defaults to the Duo username if not provided.
+        max_age          -- (Optional) Maximum number of seconds since the user last
+                            authenticated interactively. A remembered session older than
+                            this forces interactive reauthentication. Zero always forces
+                            it, equivalent to prompt='login'.
+        prompt           -- (Optional) Set to 'login' to force interactive
+                            reauthentication even when the user has a remembered session
 
         Returns:
 
@@ -286,6 +293,10 @@ class Client:
             jwt_args['dest_app_id'] = dest_app_id
         if display_username is not None:
             jwt_args['display_username'] = display_username
+        if max_age is not None:
+            jwt_args['max_age'] = max_age
+        if prompt is not None:
+            jwt_args['prompt'] = prompt
 
         request_jwt = jwt.encode(jwt_args,
                                  self._signing_key,

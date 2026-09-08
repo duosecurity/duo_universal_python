@@ -137,6 +137,79 @@ class TestCreateAuthUrl(unittest.TestCase):
         self._assert_client_creates_expected_uri(
             duo_client, expected_jwt_args, dest_app_name=DEST_APP_NAME)
 
+    @patch('time.time', MagicMock(return_value=2))
+    def test_max_age(self):
+        """
+        Test create_auth_url includes max_age when given
+        """
+        duo_client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+
+        expected_jwt_args = {
+            'scope': 'openid',
+            'redirect_uri': REDIRECT_URI,
+            'client_id': CLIENT_ID,
+            'iss': CLIENT_ID,
+            'aud': client.API_HOST_URI_FORMAT.format(HOST),
+            'exp': 302,
+            'state': STATE,
+            'response_type': 'code',
+            'duo_uname': USERNAME,
+            'use_duo_code_attribute': True,
+            'max_age': 3600,
+        }
+
+        self._assert_client_creates_expected_uri(
+            duo_client, expected_jwt_args, max_age=3600)
+
+    @patch('time.time', MagicMock(return_value=2))
+    def test_max_age_zero(self):
+        """
+        Test create_auth_url includes a max_age of zero, which forces
+        interactive reauthentication rather than being treated as unset
+        """
+        duo_client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+
+        expected_jwt_args = {
+            'scope': 'openid',
+            'redirect_uri': REDIRECT_URI,
+            'client_id': CLIENT_ID,
+            'iss': CLIENT_ID,
+            'aud': client.API_HOST_URI_FORMAT.format(HOST),
+            'exp': 302,
+            'state': STATE,
+            'response_type': 'code',
+            'duo_uname': USERNAME,
+            'use_duo_code_attribute': True,
+            'max_age': 0,
+        }
+
+        self._assert_client_creates_expected_uri(
+            duo_client, expected_jwt_args, max_age=0)
+
+    @patch('time.time', MagicMock(return_value=2))
+    def test_prompt(self):
+        """
+        Test create_auth_url includes prompt when given
+        """
+        duo_client = client.Client(CLIENT_ID, CLIENT_SECRET, HOST, REDIRECT_URI)
+
+        expected_jwt_args = {
+            'scope': 'openid',
+            'redirect_uri': REDIRECT_URI,
+            'client_id': CLIENT_ID,
+            'iss': CLIENT_ID,
+            'aud': client.API_HOST_URI_FORMAT.format(HOST),
+            'exp': 302,
+            'state': STATE,
+            'response_type': 'code',
+            'duo_uname': USERNAME,
+            'use_duo_code_attribute': True,
+            'prompt': 'login',
+        }
+
+        self._assert_client_creates_expected_uri(
+            duo_client, expected_jwt_args, prompt='login')
+
     def _assert_client_creates_expected_uri(self, duo_client, expected_jwt_args, **kwargs):
         authorize_endpoint = \
             client.OAUTH_V1_AUTHORIZE_ENDPOINT.format(HOST)
