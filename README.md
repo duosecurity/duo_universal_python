@@ -4,7 +4,7 @@
 [![Issues](https://img.shields.io/github/issues/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/issues)
 [![Forks](https://img.shields.io/github/forks/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/network/members)
 [![Stars](https://img.shields.io/github/stars/duosecurity/duo_universal_python)](https://github.com/duosecurity/duo_universal_python/stargazers)
-[![License](https://img.shields.io/badge/License-View%20License-orange)](https://github.com/duosecurity/duo_universal_python/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-View%20License-orange)](https://github.com/duosecurity/duo_universal_python/blob/main/LICENSE)
 
 
 This SDK allows a web developer to quickly add Duo's interactive, self-service, two-factor authentication to any Python3 web login form. Only Python 3 is supported.
@@ -33,7 +33,7 @@ pip3 install duo_universal
 Once it's installed, see our developer documentation at https://duo.com/docs/duoweb and `demo/app.py` in this repo for guidance on integrating Duo 2FA into your web application.
 
 ## Contribute
-To contribute, fork this repo and make a pull request with your changes when they're ready. 
+To contribute, fork this repo and make a pull request with your changes when they're ready. See [CONTRIBUTING.md](https://github.com/duosecurity/duo_universal_python/blob/main/CONTRIBUTING.md) for guidelines and our [Code of Conduct](https://github.com/duosecurity/duo_universal_python/blob/main/CODE_OF_CONDUCT.md).
 
 If you're not already working from a dedicated development environment, it's recommended a virtual environment is used. Assuming a virtual environment named `env`, create and activate the environment:
 ```
