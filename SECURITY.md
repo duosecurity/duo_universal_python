@@ -14,8 +14,8 @@ seriously. Thank you for improving the security of Duo Universal Python SDK. We
 appreciate your dedication to responsible disclosure and will make every effort
 to acknowledge your contributions.
 
-To report a vulnerability, please email the [Cisco Open security contact
-email](mailto:oss-security@cisco.com).
+To report a vulnerability, please email the Cisco Open security contact at
+[oss-security@cisco.com](mailto:oss-security@cisco.com).
 
 Here are some helpful details to include in your report:
 
@@ -29,8 +29,8 @@ will send a more detailed response within an additional three (3) business days
 indicating the next steps in handling your report.
 
 If you have not received a response during the allotted response window, please
-reach out via the [Cisco Open security contact
-email](mailto:oss-security@cisco.com).
+reach out via the Cisco Open security contact at
+[oss-security@cisco.com](mailto:oss-security@cisco.com).
 
 After the initial reply to your report, the maintainers will endeavor to keep
 you informed of the progress towards a fix and full announcement, and may ask
