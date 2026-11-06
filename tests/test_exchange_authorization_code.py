@@ -144,6 +144,21 @@ class TestExchangeAuthCodeInputs(unittest.TestCase):
         self.assertEqual(output, self.jwt_decode)
 
     @patch('requests.post')
+    @patch('jwt.decode')
+    def test_exchange_authorization_code_sends_args_in_body(self, mock_jwt, mock_post):
+        """
+        Test that the duo_code and client_assertion are sent in the
+        request body, not the URL query string
+        """
+        mock_post.return_value.status_code = REQUESTS_POST_SUCCESS
+        mock_jwt.return_value = self.jwt_decode
+        self.client.exchange_authorization_code_for_2fa_result(DUO_CODE, USERNAME)
+        kwargs = mock_post.call_args.kwargs
+        self.assertNotIn('params', kwargs)
+        self.assertEqual(kwargs['data']['code'], DUO_CODE)
+        self.assertIn('client_assertion', kwargs['data'])
+
+    @patch('requests.post')
     def test_exchange_authorization_nonce(self, mock_post):
         """
         Test that a good nonce succeeds

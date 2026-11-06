@@ -362,7 +362,7 @@ class Client:
                                                                      ca_bundle_version=CA_BUNDLE_VERSION,
                                                                      ca_pinning_status=ca_pinning_status)
             response = requests.post(token_endpoint,
-                                     params=all_args,
+                                     data=all_args,
                                      headers={"user-agent":
                                               user_agent},
                                      verify=self._duo_certs,
